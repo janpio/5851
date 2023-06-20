@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["extendedWhereUnique"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Equipment {
+  id           String                   @id @default(uuid())
+  name         String
+  owner        User                     @relation(fields: [ownerId], references: [id])
+  ownerId      String
+  packingLists PackingListToEquipment[]
+}
+
+model User {
+  id           String        @id @default(uuid())
+  auth0Id      String        @unique
+  equipment    Equipment[]
+  packingLists PackingList[]
+}
+
+model PackingListToEquipment {
+  isChecked     Boolean     @default(false)
+  equipment     Equipment   @relation(fields: [equipmentId], references: [id])
+  equipmentId   String
+  packingList   PackingList @relation(fields: [packingListId], references: [id])
+  packingListId String
+
+  @@id([equipmentId, packingListId])
+}
+
+model PackingList {
+  id        String                   @id @default(uuid())
+  createdBy User                     @relation(fields: [userId], references: [id])
+  name      String
+  equipment PackingListToEquipment[]
+  userId    String
+}
